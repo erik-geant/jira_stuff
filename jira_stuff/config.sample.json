@@ -1,5 +1,6 @@
 {
     "jira": "url",
+    "project": "project-label",
     "oauth": {
         "access_token": "token data",
         "access_token_secret": "token secret data",

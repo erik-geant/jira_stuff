@@ -9,6 +9,7 @@ CONFIG_SCHEMA = {
     "type": "object",
     "properties": {
         "jira": {"type": "string"},
+        "project": {"type": "string"},
         "oauth": {
             "type": "object",
             "properties": {
@@ -26,7 +27,7 @@ CONFIG_SCHEMA = {
             "additionalProperties": False
         }
     },
-    "required": ["jira", "oauth"],
+    "required": ["jira", "project", "oauth"],
     "additionalProperties": False
 }
 
@@ -48,10 +49,9 @@ jira = JIRA(config['jira'], oauth=oauth_dict)
 # # Get all projects viewable by the current user
 # projects = jira.projects()
 
-issues = dict([ (i.key, i) for i in jira.search_issues('project=DBOARD3 and resolution=NULL')])
-
 issues = {}
-for issue in jira.search_issues('project=DBOARD3 and resolution=NULL'):
+for issue in jira.search_issues(
+                'project=%s and resolution=NULL' % config["project"]):
     issues[issue.key] = {
         # "issue": issue,
         "depends on": [],
