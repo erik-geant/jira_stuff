@@ -1,0 +1,72 @@
+import json
+
+from jira import JIRA
+from jsonschema import validate
+
+
+OAUTH_CONFIG_SCHEMA = {
+    "$schema": "http://json-schema.org/draft-06/schema#",
+    "type": "object",
+    "properties": {
+        "access_token": {"type": "string"},
+        "access_token_secret": {"type": "string"},
+        "consumer_key": {"type": "string"},
+        "priv_key_filename": {"type": "string"}
+    },
+    "required": [
+        "access_token",
+        "access_token_secret",
+        "consumer_key",
+        "priv_key_filename"
+    ],
+    "additionalProperties": False
+}
+
+
+with open('oauth.json') as f:
+    oauth_config = json.loads(f.read())
+    validate(oauth_config, OAUTH_CONFIG_SCHEMA)
+
+    oauth_dict = {
+        'access_token': oauth_config['access_token'],
+        'access_token_secret': oauth_config['access_token_secret'],
+        'consumer_key': oauth_config['consumer_key']
+
+    }
+    with open(oauth_config["priv_key_filename"]) as k:
+        oauth_dict['key_cert'] = k.read()
+
+
+jira = JIRA('https://issues.win.dante.org.uk/jira', oauth=oauth_dict)
+
+# # Get all projects viewable by the current user
+# projects = jira.projects()
+
+issues = dict([ (i.key, i) for i in jira.search_issues('project=DBOARD3 and resolution=NULL')])
+
+issues = {}
+for issue in jira.search_issues('project=DBOARD3 and resolution=NULL'):
+    issues[issue.key] = {
+        # "issue": issue,
+        "depends on": [],
+        "is needed by": []
+    }
+    for link in issue.fields.issuelinks:
+        if hasattr(link, "outwardIssue"):
+            dep = getattr(link, "outwardIssue")
+            issues[issue.key]["depends on"].append(dep.key)
+        if hasattr(link, "inwardIssue"):
+            dep = getattr(link, "inwardIssue")
+            issues[issue.key]["is needed by"].append(dep.key)
+
+
+def _print_issue_and_dependencies(issue_key, indent=0):
+    print("%s%s" % (indent*'\t', issue_key))
+    for dep_key in issues[issue_key]["is needed by"]:
+        _print_issue_and_dependencies(dep_key, indent+1)
+
+
+for issue, links in issues.items():
+    if len(links["depends on"]):
+        continue
+    _print_issue_and_dependencies(issue)
