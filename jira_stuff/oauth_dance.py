@@ -1,3 +1,5 @@
+# https://bitbucket.org/atlassian_tutorial/atlassian-oauth-examples/src/3f0d22c5b1d8?at=default
+# https://bitbucket.org/atlassian_tutorial/atlassian-oauth-examples
 import base64
 import urlparse
 from tlslite.utils import keyfactory
@@ -26,7 +28,7 @@ class SignatureMethod_RSA_SHA1(oauth.SignatureMethod):
         """Builds the base signature string."""
         key, raw = self.signing_base(request, consumer, token)
 
-        with open('../rsa.pem', 'r') as f:
+        with open('rsa.pem', 'r') as f:
             data = f.read()
         privateKeyString = data.strip()
 
@@ -41,11 +43,13 @@ class SignatureMethod_RSA_SHA1(oauth.SignatureMethod):
 consumer_key = 'oauth-sample-consumer'
 consumer_secret = 'dont_care'
 
-request_token_url = 'http://localhost:8090/jira/plugins/servlet/oauth/request-token'
-access_token_url = 'http://localhost:8090/jira/plugins/servlet/oauth/access-token'
-authorize_url = 'http://localhost:8090/jira/plugins/servlet/oauth/authorize'
+JIRA_BASE = 'https://issues.win.dante.org.uk/jira/'
+JIRA_OAUTH_BASE = JIRA_BASE + 'plugins/servlet/oauth/'
+request_token_url = JIRA_OAUTH_BASE + 'request-token'
+access_token_url = JIRA_OAUTH_BASE + 'access-token'
+authorize_url = JIRA_OAUTH_BASE + 'authorize'
 
-data_url = 'http://localhost:8090/jira/rest/api/2/issue/BULK-1'
+data_url = JIRA_BASE + 'rest/api/2/issue/DBOARD3-40'
 
 consumer = oauth.Consumer(consumer_key, consumer_secret)
 client = oauth.Client(consumer)
@@ -53,7 +57,7 @@ client = oauth.Client(consumer)
 # Lets try to access a JIRA issue (BULK-1). We should get a 401.
 resp, content = client.request(data_url, "GET")
 if resp['status'] != '401':
-    raise Exception("Should have no access!")
+    raise Exception("Should have no access! got: %r" % resp['status'])
 
 consumer = oauth.Consumer(consumer_key, consumer_secret)
 client = oauth.Client(consumer)
