@@ -4,40 +4,46 @@ from jira import JIRA
 from jsonschema import validate
 
 
-OAUTH_CONFIG_SCHEMA = {
+CONFIG_SCHEMA = {
     "$schema": "http://json-schema.org/draft-06/schema#",
     "type": "object",
     "properties": {
-        "access_token": {"type": "string"},
-        "access_token_secret": {"type": "string"},
-        "consumer_key": {"type": "string"},
-        "priv_key_filename": {"type": "string"}
+        "jira": {"type": "string"},
+        "oauth": {
+            "type": "object",
+            "properties": {
+                "access_token": {"type": "string"},
+                "access_token_secret": {"type": "string"},
+                "consumer_key": {"type": "string"},
+                "private_key_filename": {"type": "string"}
+            },
+            "required": [
+                "access_token",
+                "access_token_secret",
+                "consumer_key",
+                "private_key_filename"
+            ],
+            "additionalProperties": False
+        }
     },
-    "required": [
-        "access_token",
-        "access_token_secret",
-        "consumer_key",
-        "priv_key_filename"
-    ],
+    "required": ["jira", "oauth"],
     "additionalProperties": False
 }
 
-
-with open('oauth.json') as f:
-    oauth_config = json.loads(f.read())
-    validate(oauth_config, OAUTH_CONFIG_SCHEMA)
+with open('config.json') as f:
+    config = json.loads(f.read())
+    validate(config, CONFIG_SCHEMA)
 
     oauth_dict = {
-        'access_token': oauth_config['access_token'],
-        'access_token_secret': oauth_config['access_token_secret'],
-        'consumer_key': oauth_config['consumer_key']
+        'access_token': config['oauth']['access_token'],
+        'access_token_secret': config['oauth']['access_token_secret'],
+        'consumer_key': config['oauth']['consumer_key']
 
     }
-    with open(oauth_config["priv_key_filename"]) as k:
+    with open(config['oauth']["private_key_filename"]) as k:
         oauth_dict['key_cert'] = k.read()
 
-
-jira = JIRA('https://issues.win.dante.org.uk/jira', oauth=oauth_dict)
+jira = JIRA(config['jira'], oauth=oauth_dict)
 
 # # Get all projects viewable by the current user
 # projects = jira.projects()
