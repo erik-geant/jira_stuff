@@ -67,7 +67,11 @@ for issue in jira.search_issues('project=DBOARD3 and resolution=NULL'):
 
 
 def _print_issue_and_dependencies(issue_key, indent=0):
-    print("%s%s" % (indent*'\t', issue_key))
+    if issues[issue_key]["is needed by"]:
+        is_needed_by = ", is needed by:"
+    else:
+        is_needed_by = ""
+    print("%s%s%s" % (indent*'\t', issue_key, is_needed_by))
     for dep_key in issues[issue_key]["is needed by"]:
         _print_issue_and_dependencies(dep_key, indent+1)
 
