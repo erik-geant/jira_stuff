@@ -5,6 +5,6 @@
         "access_token": "token data",
         "access_token_secret": "token secret data",
         "consumer_key": "consumer name",
-        "priv_key_filename": "filename"
+        "private_key_filename": "filename"
     }
 }
